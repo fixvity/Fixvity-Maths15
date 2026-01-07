@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Z-Score Calculator – Explain Like a Teacher</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+:root{
+  --blue:#2563eb;
+  --bg:#f4f6fb;
+  --card:#ffffff;
+  --muted:#6b7280;
+  --radius:14px;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:system-ui,-apple-system,Segoe UI,Roboto;
+  background:var(--bg);
+  color:#111827;
+}
+.container{
+  max-width:1100px;
+  margin:auto;
+  padding:16px;
+}
+.card{
+  background:var(--card);
+  border-radius:var(--radius);
+  box-shadow:0 12px 30px rgba(0,0,0,.08);
+  padding:18px;
+  margin-bottom:16px;
+}
+h1{margin:0;color:var(--blue)}
+.subtitle{color:var(--muted);margin-top:6px}
+
+label{font-weight:600;font-size:14px}
+input,select,textarea{
+  width:100%;
+  padding:12px;
+  margin-top:6px;
+  margin-bottom:14px;
+  border-radius:10px;
+  border:1px solid #d1d5db;
+  font-size:15px;
+}
+
+button{
+  width:100%;
+  padding:14px;
+  border:none;
+  border-radius:12px;
+  background:var(--blue);
+  color:white;
+  font-weight:700;
+  cursor:pointer;
+}
+button.secondary{
+  background:#eef2ff;
+  color:#111;
+  margin-top:10px;
+}
+
+.grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:16px;
+}
+@media(max-width:900px){
+  .grid{grid-template-columns:1fr}
+}
+
+.result-box{
+  background:#f9fafb;
+  border-radius:10px;
+  padding:14px;
+}
+.step{
+  background:#f3f4f6;
+  border-radius:8px;
+  padding:10px;
+  margin-bottom:8px;
+}
+.badge{
+  display:inline-block;
+  padding:4px 10px;
+  background:#e0e7ff;
+  color:#1e3a8a;
+  border-radius:999px;
+  font-size:12px;
+  margin-bottom:6px;
+}
+.error{color:#dc2626;font-weight:600}
+</style>
+</head>
+
+<body>
+<div class="container">
+
+<div class="card">
+<h1>Z-Score Calculator</h1>
+<p class="subtitle">
+Population & Sample • Accurate statistics • Explain like a teacher
+</p>
+
+<label>Data set (optional – comma/space separated)</label>
+<textarea id="data" rows="3" placeholder="Example: 20, 45, 35, 60"></textarea>
+
+<label>Value (x)</label>
+<input id="xval" value="45">
+
+<label>Calculation Type</label>
+<select id="type">
+  <option value="population">Population (σ)</option>
+  <option value="sample">Sample (s)</option>
+</select>
+
+<label>
+  <input type="checkbox" id="teach" checked>
+  Explain like a teacher
+</label>
+
+<button onclick="calculate()">Calculate Z-Score</button>
+<button class="secondary" onclick="resetAll()">Reset</button>
+</div>
+
+<div class="grid">
+<div class="card">
+<h3>Result</h3>
+<div id="result" class="result-box"></div>
+</div>
+
+<div class="card">
+<h3>Step-by-Step</h3>
+<div id="steps"></div>
+</div>
+</div>
+
+</div>
+
+<script>
+function calculate(){
+  const dataRaw = document.getElementById("data").value.trim();
+  const x = parseFloat(document.getElementById("xval").value);
+  const type = document.getElementById("type").value;
+  const teach = document.getElementById("teach").checked;
+
+  const resultBox = document.getElementById("result");
+  const stepsBox = document.getElementById("steps");
+  resultBox.innerHTML="";
+  stepsBox.innerHTML="";
+
+  try{
+    let arr = [];
+    if(dataRaw){
+      arr = dataRaw.split(/[\s,]+/).map(Number).filter(v=>!isNaN(v));
+      if(arr.length < 2) throw "Need at least 2 data points";
+    }
+
+    let mean, sd;
+
+    if(arr.length){
+      mean = arr.reduce((a,b)=>a+b,0)/arr.length;
+      let variance = arr.reduce((s,v)=>s+(v-mean)**2,0) /
+        (type==="sample" ? arr.length-1 : arr.length);
+      sd = Math.sqrt(variance);
+
+      if(teach){
+        stepsBox.innerHTML += `<div class="step">Mean = ${mean.toFixed(6)}</div>`;
+        stepsBox.innerHTML += `<div class="step">Standard deviation = ${sd.toFixed(6)}</div>`;
+      }
+    }else{
+      throw "Please enter a dataset for accurate Z-score";
+    }
+
+    const z = (x - mean) / sd;
+
+    resultBox.innerHTML = `
+      <span class="badge">Final Answer</span><br>
+      <strong>Z = ${z.toFixed(6)}</strong><br><br>
+      This value is <b>${z>0?"above":"below"}</b> the mean.
+    `;
+
+    if(teach){
+      stepsBox.innerHTML += `
+        <div class="step">
+        Z = (x − mean) / standard deviation
+        </div>
+        <div class="step">
+        Z = (${x} − ${mean.toFixed(4)}) / ${sd.toFixed(4)}
+        </div>
+        <div class="step">
+        Z = ${z.toFixed(6)}
+        </div>
+      `;
+    }
+
+  }catch(e){
+    resultBox.innerHTML = `<span class="error">Invalid input or insufficient data.</span>`;
+  }
+}
+
+function resetAll(){
+  document.getElementById("data").value="";
+  document.getElementById("xval").value="";
+  document.getElementById("result").innerHTML="";
+  document.getElementById("steps").innerHTML="";
+}
+</script>
+
+</body>
+</html>
